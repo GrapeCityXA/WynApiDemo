@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+  <meta charset="UTF-8">
+  <title>test wynApi</title>
+  <link rel="stylesheet" href="../files/vendor.css">
+  <link rel="stylesheet" href="../files/app.css">
+  <link rel="stylesheet" href="../files/common.css">
+  <script type="module">
+    import {sendRequest, getToken} from "../api-service/api-script.js";
+    import api from '../api-service/api.js';
+
+    let token;
+    async function getOrganizations() {
+        let organizations = await sendRequest(api.getOrganizations, token);
+        let select = document.getElementById("organizations");
+        organizations.forEach((organization) => {
+            let opt = document.createElement("option");
+            opt.value = organization.id;
+            opt.innerHTML = organization.name;
+            select.appendChild(opt);
+        })
+    }
+
+    async function getRoles(){
+      let organizationId = document.getElementById("organizations").selectedOptions[0].value;
+      let roles;
+      if(organizationId == ""){
+          roles = await sendRequest(api.getNonOrgRoles, token);
+      }
+      else{
+          api.getOrgRoles.url = api.getOrgRoles.getUrl(organizationId);
+          roles = await sendRequest(api.getOrgRoles, token);
+      }
+      console.log(roles)
+      let container = document.getElementById("container");
+      if (container.children) {
+          container.innerHTML = "";
+      }
+      roles.forEach((role) => {
+        if(role.id != "everyone"){
+          let div = document.createElement("div");
+          div.innerHTML = `<input type="checkbox" value="${role.name}">${role.name}`;
+          container.appendChild(div);
+        }
+      })
+    }
+
+    async function addUser() {
+      let username = document.getElementById("username").value.trim();
+      let email = document.getElementById("email").value.trim();
+      let password = document.getElementById("password").value.trim();
+      let roles = [];
+      document.querySelectorAll('input[type=checkbox]:checked').forEach((item) => {
+        roles.push(item.value);
+      })
+      let tenantId = document.getElementById("organizations").selectedOptions[0].value;
+      tenantId = tenantId == "" ? null : tenantId;
+
+      api.addUser.body = api.addUser.getBody(username, email, password, roles, tenantId);
+      let res = await sendRequest(api.addUser, token);
+      if(res.errors && res.errors[0]){
+        document.getElementById("result").innerHTML = `新增失败，错误原因为：${JSON.stringify(res.errors[0].message)}`;
+      }else{
+        document.getElementById("result").innerHTML = `新增成功，新增的用户为：${JSON.stringify(res.model)}`;
+      }
+    }
+
+    window.onload = function () {
+        document.getElementById("organizations").addEventListener('change', getRoles, false);
+        document.getElementById("add-user").addEventListener('click', addUser, false);
+        getToken().then((resToken)=> {
+            token = resToken;
+            getOrganizations();
+            getRoles();
+        }).catch((error) => {
+            console.log(error);
+            window.alert('获取token失败！')
+        });
+    }
+  </script>
+</head>
+
+<body>
+  <div class="col-4 iframe-header">
+    <div class="form-group">
+      <label>organization:</label>
+        <select id="organizations" class="form-control">
+            <option value=""></option>
+        </select>
+    </div>
+    <div class="form-group">
+      <label>username:</label>
+      <input id="username" type="text" value="" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>email:</label>
+      <input id="email" type="text" value="" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>password:</label>
+      <input id="password" type="text" value="" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>roles:</label>
+      <div id="container"></div>
+    </div>
+
+    <div class="form-group">
+        <button id='add-user' class="btn btn-block btn-primary">add user</button>
+        <p id="result"></p>
+    </div>
+  </div>
+</body>
+
+</html>

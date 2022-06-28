@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function initTags() {
+            let res = await sendRequest(api.getALLTags, token);
+            let tags = res.data.tags;
+            let list = document.createElement('ul');
+            tags.forEach(function (tag) {
+                let listItem = document.createElement('li');
+                listItem.textContent = tag.name;
+                list.appendChild(listItem);
+            });
+            let container = document.getElementById("container");
+            container.appendChild(list);
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                initTags();
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body style="height:100%;width:100%;margin:0;">
+<div class="iframe-header">
+    <label>tags:</label>
+    <div id="container"></div>
+</div>
+</body>
+
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script src="../api-service/api-script.js" charset="utf-8"></script>
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from "../api-service/api.js";
+        let token; 
+        async function getAllOrganizations() {
+            let res = await sendRequest(api.getOrganizations, token);
+            let ul = document.createElement("ul");
+            res.forEach((organization) => {
+                let li = document.createElement("li");
+                li.innerHTML = `${organization.name}<br>`;
+                ul.appendChild(li);
+            })
+            let container = document.getElementById("container");
+            container.appendChild(ul);
+        }
+        window.onload = function() {
+            getToken().then((resToken)=> {
+                token = resToken;
+                getAllOrganizations();
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！');
+            });
+        }
+    </script>
+</head>
+
+<body>
+<div class="from-group iframe-header">
+    <label>现有全部组织:</label>
+    <div id="container"></div>
+</div>
+</body>
+
+</html>

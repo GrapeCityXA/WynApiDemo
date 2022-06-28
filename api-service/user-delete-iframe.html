@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+  <meta charset="UTF-8">
+  <title>test wynApi</title>
+  <link rel="stylesheet" href="../files/vendor.css">
+  <link rel="stylesheet" href="../files/app.css">
+  <link rel="stylesheet" href="../files/common.css">
+  <script type="module">
+    import {sendRequest, getToken} from "../api-service/api-script.js";
+    import api from '../api-service/api.js';
+
+    let token;
+
+    async function getUsers() {
+        let users = await sendRequest(api.getAllUsers, token);
+        if(users.models.length == 0){
+            document.getElementById("delete-user").setAttribute("disabled", "disabled"); 
+            return;
+        }
+        let select = document.getElementById("users");
+        users.models.forEach((user) => {
+            let opt = document.createElement("option");
+            opt.value = user.id;
+            opt.innerHTML = user.username;
+            select.appendChild(opt);
+        })
+    }
+
+    async function deleteUser() {
+      let userId = document.getElementById("users").selectedOptions[0].value;
+      api.deleteUser.url = api.deleteUser.getUrl(userId);
+      let res = await sendRequest(api.deleteUser, token);
+      if(res.errors && res.errors[0]){
+        document.getElementById("result").innerHTML = `新增失败，错误原因为：${JSON.stringify(res.errors[0].message)}`;
+      }else{
+        document.getElementById("result").innerHTML = `新增成功，新增的用户为：${JSON.stringify(res.model)}`;
+      }
+    }
+
+    window.onload = function() {
+        document.getElementById("delete-user").addEventListener('click', deleteUser, false);
+        getToken().then((resToken)=> {
+            token = resToken;
+            getUsers();
+        }).catch((error) => {
+            console.log(error);
+            window.alert('获取token失败！')
+        });
+    }
+  </script>
+</head>
+
+<body>
+
+  <div class="col-4 iframe-header">
+    <div class="form-group">
+      <label>users:</label>
+      <select id="users" class="form-control">
+      </select>
+    </div>
+    <div class="form-group">
+      <button id="delete-user" class="btn btn-block btn-primary" disabled>delete user</button>
+    </div>
+    <p id="result"></p>
+  </div>
+</body>
+
+</html>

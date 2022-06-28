@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+  <meta charset="UTF-8">
+  <title>test wynApi</title>
+  <link rel="stylesheet" href="../files/vendor.css">
+  <link rel="stylesheet" href="../files/app.css">
+  <link rel="stylesheet" href="../files/common.css">
+  <script src="../api-service/api-script.js" charset="utf-8"></script>
+  <script type="text/javascript">
+    async function createUsers() {
+      var localusersUrl = 'admin/api/accountmanagement/api/v1/localusers';
+      var localusers = await serviceApi(localusersUrl);
+
+      var container = document.getElementById("container")
+      while (container.firstChild) {
+        container.firstChild.remove();
+      }
+
+      var roles = document.getElementById("roles");
+      var roleName = roles.options[roles.selectedIndex].getAttribute("name");
+      var users = localusers.models;
+      var checkedUsers = [];
+      users.forEach((user) => {
+        user.roles.forEach((role) => {
+          if (role === roleName) {
+            var div = document.createElement("div");
+            div.innerHTML = `<input id="${user.id}" type="checkbox" checked>${user.username}<br>`;
+            container.appendChild(div);
+            checkedUsers.push(user);
+          }
+        })
+      })
+
+      if (roleName !== "") {
+        users.forEach((user) => {
+          var index = checkedUsers.findIndex(item => item.id === user.id);
+          if (index === -1) {
+            var div = document.createElement("div");
+            div.innerHTML = `<input id="${user.id}" type="checkbox">${user.username}<br>`;
+            container.appendChild(div);
+            checkedUsers.push(user);
+          }
+        })
+      }
+    }
+
+    async function createRoles() {
+      var url = `admin/api/accountmanagement/api/v1/roles`;
+      var nodes = await serviceApi(url);
+      for (var i = 0; i < nodes.length; i++) {
+        var data = nodes[i];
+        var select = document.getElementById("roles");
+        var opt = document.createElement('option');
+        opt.value = data.id;
+        opt.innerHTML = data.name;
+        opt.setAttribute("name", data.name);
+        select.appendChild(opt);
+      }
+    }
+
+    async function addUserFortheRole() {
+      var userIds = [];
+      document.querySelectorAll('input[type=checkbox]:checked').forEach((user) => {
+        userIds.push(user.id);
+      });
+
+      var roles = document.getElementById("roles");
+      var roleId = roles.options[roles.selectedIndex].value;
+      var url = `admin/api/accountmanagement/api/v1/roles/${roleId}/users`;
+      var user = await serviceApi(url, "PUT", {
+        UserIds: userIds
+      });
+      document.getElementById("result").innerHTML = JSON.stringify(user);
+    }
+
+    window.onload = function() {
+      createRoles();
+      createUsers();
+    }
+  </script>
+</head>
+
+<body>
+  <div class="col-4">
+    <div class="form-group">
+      <label>Roles:</label>
+      <select id="roles" onchange="createUsers()" class="form-control">
+        <option value="-1" name=""></option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>User:</label>
+      <div id="container"></div>
+    </div>
+    <button onclick="addUserFortheRole()" class="btn btn-block btn-primary">role add user</button>
+    <p id="result"></p>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script src="../api-service/api-script.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        async function getAllProps() {
+            let propsUrl = 'admin/api/accountmanagement/api/v1/tenants/props';
+            let props = await serviceApi(propsUrl);
+            props.forEach((prop) => {
+                let select = document.getElementById("props");
+                let opt = document.createElement("option");
+                opt.value = JSON.stringify(prop);
+                opt.innerHTML = prop.name;
+                select.appendChild(opt);
+            })
+        }
+
+        async function deleteTenantProp() {
+            let propsElement = document.getElementById("props");
+            let selectedOption = propsElement.options[propsElement.selectedIndex];
+            let prop = JSON.parse(selectedOption.value);
+            let url = `admin/api/accountmanagement/api/v1/tenants/props/${prop.id}`;
+            let propResponse = await serviceApi(url, "DELETE");
+            document.getElementById("result").innerHTML = JSON.stringify(propResponse);
+        }
+
+        window.onload = function () {
+            getAllProps();
+        }
+    </script>
+</head>
+
+<body>
+<div class="col-4 iframe-header">
+    <div class="form-group">
+        <label>组织属性:</label>
+        <select id="props" class="form-control">
+            <option value="-1"></option>
+        </select>
+    </div>
+    <div class="form-group">
+        <button onclick="deleteTenantProp()" class="btn btn-block btn-primary">删除组织属性</button>
+    </div>
+    <p id="result"></p>
+</div>
+</body>
+
+</html>

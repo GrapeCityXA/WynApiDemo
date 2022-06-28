@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+  <meta charset="UTF-8">
+  <title>test wynApi</title>
+  <link rel="stylesheet" href="../files/vendor.css">
+  <link rel="stylesheet" href="../files/app.css">
+  <link rel="stylesheet" href="../files/common.css">
+  <script type="module">
+    import {sendRequest, getToken} from "../api-service/api-script.js";
+    import api from '../api-service/api.js';
+    let token;
+    let user;
+    async function getUsers() {
+        let users = await sendRequest(api.getAllUsers, token);
+        let select = document.getElementById("users");
+        users.models.forEach((user) => {
+            let opt = document.createElement("option");
+            opt.value = JSON.stringify(user);
+            opt.innerHTML = user.username;
+            select.appendChild(opt);
+        })
+    }
+
+    async function editUser() {
+      if(!user){
+        return;
+      }
+      api.modifiedUser.url = api.modifiedUser.getUrl(user.id);
+      let email = document.getElementById("email").value.trim();
+      let password = document.getElementById("password").value.trim();
+      api.modifiedUser.body = {...user, email, password, confirmPassword: password};
+      let res = await sendRequest(api.modifiedUser, token);
+      if(res.errors && res.errors[0]){
+        document.getElementById("result").innerHTML = `编辑失败，错误原因为：${JSON.stringify(res.errors[0].message)}`;
+      }else{
+        document.getElementById("result").innerHTML = `编辑成功，编辑的用户为：${JSON.stringify(res.model)}`;
+      }
+    }
+
+    function changeUser() {
+      let jsonUser = document.getElementById("users").selectedOptions[0].value;
+      if(jsonUser == ""){
+        user = undefined;
+        document.getElementById("edit-user").setAttribute("disabled", "disabled"); 
+        document.getElementById("email").value = "";
+      }else{
+        document.getElementById("edit-user").removeAttribute("disabled"); 
+        user = JSON.parse(jsonUser);
+        document.getElementById("email").value = user.email;
+        document.getElementById("password").value = "";
+      }  
+    }
+
+    window.onload = function() {
+        document.getElementById("users").addEventListener('change', changeUser, false);
+        document.getElementById("edit-user").addEventListener('click', editUser, false);
+        getToken().then((resToken)=> {
+            token = resToken;
+            getUsers();
+        }).catch((error) => {
+            console.log(error);
+            window.alert('获取token失败！')
+        });
+    }
+  </script>
+</head>
+
+<body>
+  <div class="col-4 iframe-header">
+    <div class="form-group">
+      <label>users:</label>
+      <select id="users" class="form-control">
+        <option value=""></option>
+      </select>
+      <div class="form-group">
+        <label>email:</label>
+        <input id="email" type="text" value="" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>password:</label>
+        <input id="password" type="text" value="" class="form-control">
+      </div>
+      <div class="form-group">
+        <button id="edit-user" class="btn btn-block btn-primary" disabled>edit user</button>
+        <p id="result"></p>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+  <meta charset="UTF-8">
+  <title>test wynApi</title>
+  <link rel="stylesheet" href="../files/vendor.css">
+  <link rel="stylesheet" href="../files/app.css">
+  <link rel="stylesheet" href="../files/common.css">
+  <script src="../api-service/api-script.js" charset="utf-8"></script>
+  <script type="text/javascript">
+    async function createRoles() {
+      var url = `admin/api/accountmanagement/api/v1/roles`;
+      var roles = await serviceApi(url);
+
+      var container = document.getElementById("container");
+      roles.forEach((role) => {
+        var div = document.createElement("div");
+        div.innerHTML = `<input type="checkbox" id="${role.name}" value="${role.name}">${role.name}`;
+        container.appendChild(div);
+      })
+    }
+
+    async function editUserRoles() {
+      var usersElement = document.getElementById("users");
+      var jsonUser = usersElement.options[usersElement.selectedIndex].value;
+      var user = JSON.parse(jsonUser);
+      var roles = [];
+      document.querySelectorAll('input[type=checkbox]:checked').forEach((item) => {
+        roles.push(item.value);
+      })
+      user.roles = roles;
+
+      var url = `admin/api/accountmanagement/api/v1/users/${user.id}`;
+      var user = await serviceApi(url, "PUT", user);
+      document.getElementById("result").innerHTML = JSON.stringify(user);
+    }
+
+    async function createUsers() {
+      var url = 'admin/api/accountmanagement/api/v1/localusers';
+      var data = await serviceApi(url);
+      var users = data.models;
+      users.forEach((user) => {
+        var select = document.getElementById("users");
+        var opt = document.createElement('option');
+        opt.value = JSON.stringify(user);
+        opt.innerHTML = user.username;
+        select.appendChild(opt);
+      })
+    }
+
+    function changeUser(jsonUser) {
+      document.querySelectorAll("input[type=checkbox]:checked").forEach((item) => item.checked = false);
+      var user = JSON.parse(jsonUser);
+      var roles = user.roles;
+      roles.forEach((role) => {
+        var roleElement = document.getElementById(role);
+        roleElement.checked = true;
+      })
+    }
+
+    window.onload = function() {
+      createRoles();
+      createUsers();
+    }
+  </script>
+</head>
+
+<body>
+  <div class="col-4 iframe-header">
+    <div class="form-group">
+      <label>user name:</label>
+      <select id="users" onchange="changeUser(this.value)" class="form-control">
+        <option value="-1"></option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>roles:</label>
+      <div id="container"></div>
+    </div>
+    <div class="form-group">
+      <button onclick="editUserRoles()" class="btn btn-block btn-primary">edit user roles</button>
+    </div>
+    <p id="result"></p>
+  </div>
+</body>
+
+</html>

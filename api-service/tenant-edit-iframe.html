@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script src="../api-service/api-script.js" charset="utf-8"></script>
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from "../api-service/api.js";
+        let token; 
+        let curOrganization;
+        let props = [];
+        async function getOrganizations(){
+            let res = await sendRequest(api.getOrganizations, token);
+            let organizations = document.getElementById("organizations");
+            organizations.options.add(new Option("",""));
+            res.forEach((organization) => {
+                let option = document.createElement("option");
+                option.innerHTML = `${organization.name}`;
+                option.value = JSON.stringify(organization);
+                organizations.appendChild(option);
+            });
+        }
+
+        function changeOrganization() {
+            let organizations = document.getElementById("organizations");
+            let container = document.getElementById("container");
+            if(organizations.selectedIndex == 0){
+                document.getElementById("result").innerHTML = "";
+                document.getElementById("name").value = "";
+                if (container.children) {
+                    container.innerHTML = "";
+                }
+                document.getElementById("save-organization").setAttribute("disabled", "disabled"); 
+                return;
+            }
+            document.getElementById("save-organization").removeAttribute("disabled");
+            curOrganization = JSON.parse(organizations.selectedOptions[0].value)
+            props = curOrganization.props;
+            if (container.children) {
+                container.innerHTML = "";
+            }
+            document.getElementById("result").innerHTML = "";
+            document.getElementById("name").value = curOrganization.name;
+            if (props.length) {
+                props.forEach((prop) => {
+                    let div = document.createElement("div");
+                    div.classList.add("form-group");
+                    div.innerHTML = `<label>${prop.name}:</label><input id="${prop.id}" type="text" value="${prop.values.toString()}" class="form-control">`;
+                    container.appendChild(div);
+                })
+            }
+        }
+
+        async function saveOrganization() {          
+            let name = document.getElementById("name").value.trim();
+            let requestProps = [];
+            props.forEach((p) => {
+                let propValue = document.getElementById(p.id).value;
+                let prop = {
+                    id: p.id,
+                    name: p.name,
+                    values : propValue ? propValue.split(",") : [],
+                    allowSubTenantEditing: true,
+                    allowSubTenantViewing: true,
+                    editable: true,
+                    viewable: true,
+                    description: null,
+                    multivalued: false,
+                    required: false,
+                    valueType: 0
+                }
+                requestProps.push(prop);
+            })        
+            api.modifiedOrganizations.url = api.modifiedOrganizations.getUrl(curOrganization.id);
+            api.modifiedOrganizations.body = api.modifiedOrganizations.getBody(curOrganization.id, name, curOrganization.parentTenantId, curOrganization.path, curOrganization.createTime, requestProps);
+            let res = await sendRequest(api.modifiedOrganizations, token);
+            if (res.errors && res.errors[0]) {
+                let error = res.errors[0];
+                document.getElementById("result").innerHTML = '出错了！错误信息为： ' + error.message;
+            } else {
+                document.getElementById("result").innerHTML = '编辑成功！当前组织信息为： ' + JSON.stringify(res);         
+            }
+        }
+
+        window.onload = function () {  
+            document.getElementById("organizations").addEventListener('change', changeOrganization, false);
+            document.getElementById("save-organization").addEventListener('click', saveOrganization, false);
+            getToken().then((resToken)=> {
+                token = resToken;
+                getOrganizations();
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！');
+            });
+        }
+    </script>
+</head>
+
+<body>
+<div class="col-4 iframe-header">
+    <div class="form-group">
+        <label>选择组织:</label>
+        <select id="organizations" class="form-control">
+        </select>
+    </div>
+    <div class="form-group">
+        <label>更改组织名称：</label>
+        <input id="name" type="text" value="" class="form-control">
+    </div>
+    <div class="form-group">
+        <label>更改其他属性：</label>
+    </div>
+    <div id="container">
+    </div>
+    <div class="form-group">
+        <button id="save-organization" class="btn btn-block btn-primary" disabled>保存</button>
+    </div>
+    <p id="result"></p>
+</div>
+</body>
+
+</html>

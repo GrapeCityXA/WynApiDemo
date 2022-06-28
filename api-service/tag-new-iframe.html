@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getTags() {
+            return await sendRequest(api.getALLTags, token);
+        }
+
+        async function showTags() {
+            let res = await getTags();
+            let tags = res.data.tags;
+            let container = document.getElementById('container');
+            while (container.firstChild) {
+                container.firstChild.remove();
+            }
+            let list = document.createElement('ul');
+            tags.forEach(function (node) {
+                let listItem = document.createElement('li');
+                listItem.textContent = node.name;
+                list.appendChild(listItem);
+            });
+            container.appendChild(list);
+        }
+
+        async function addTag() {
+            let res = await getTags();
+            let tagName = document.getElementById("newtag").value;
+            let order = Math.max(...res.data.tags.map((item) => item.order)) + 1;
+            api.addTag['graphqlStr'] = api.addTag.getGraphqlStr(tagName, order);
+            await sendRequest(api.addTag, token);
+            await showTags();
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                document.getElementById("addTag").addEventListener('click', addTag, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+  <div class="col-4 iframe-header">
+    <div class="form-group">
+      <label>tag name:</label>
+      <input id="newtag" type="text" class="form-control">
+    </div>
+    <button type="button" id="addTag" class="btn btn-block btn-primary">add Tag</button>
+    <div id="container"></div>
+  </div>
+</body>
+
+</html>

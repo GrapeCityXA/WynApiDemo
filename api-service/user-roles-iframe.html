@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+  <meta charset="UTF-8">
+  <title>test wynApi</title>
+  <link rel="stylesheet" href="../files/vendor.css">
+  <link rel="stylesheet" href="../files/app.css">
+  <link rel="stylesheet" href="../files/common.css">
+  <script src="../api-service/api-script.js" charset="utf-8"></script>
+  <script type="text/javascript">
+    async function createUsers() {
+      var url = 'admin/api/accountmanagement/api/v1/localusers';
+      var data = await serviceApi(url);
+      var users = data.models;
+      users.forEach((user) => {
+        var select = document.getElementById("users");
+        var opt = document.createElement('option');
+        opt.value = JSON.stringify(user);
+        opt.innerHTML = user.username;
+        select.appendChild(opt);
+      })
+    }
+
+    function changeUser(jsonUser) {
+      var user = JSON.parse(jsonUser);
+      var roles = user.roles;
+      var container = document.getElementById("container");
+      while (container.firstChild) {
+        container.firstChild.remove();
+      }
+      roles.forEach((role) => {
+        var li = document.createElement("li");
+        li.innerHTML = `${role}<br>`;
+        container.appendChild(li);
+      })
+    }
+
+    window.onload = function() {
+      createUsers();
+    }
+  </script>
+</head>
+
+<body>
+  <div class="col-4 iframe-header">
+    <div class="form-group">
+      <label>user name:</label>
+      <select id="users" onchange="changeUser(this.value)" class="form-control">
+        <option value="-1"></option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>roles:</label>
+      <ul id="container"></ul>
+    </div>
+  </div>
+</body>
+
+</html>

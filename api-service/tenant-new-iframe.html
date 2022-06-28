@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script src="../api-service/api-script.js" charset="utf-8"></script>
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from "../api-service/api.js";
+        let token; 
+        let props = [];
+        async function getOrganizations(){
+            let res = await sendRequest(api.getOrganizations, token);
+            let organizations = document.getElementById("parentOrganization");
+            organizations.options.add(new Option("",""));
+            res.forEach((organization) => {
+                let option = document.createElement("option");
+                option.innerHTML = `${organization.name}`;
+                option.value = `${organization.id}`;
+                organizations.appendChild(option);
+            });
+        }
+        async function getOrganizationProps() {
+            props = await sendRequest(api.getOrganizationProps, token);
+            let container = document.getElementById("container");
+            props.forEach((prop) => {
+                let div = document.createElement("div");
+                div.classList.add("form-group");
+                div.innerHTML = `<label>${prop.name}:</label><input id="${prop.id}" type="text" value="" class="form-control">`;
+                container.appendChild(div);
+            })
+        }
+
+        async function addOrganization() {
+            let name = document.getElementById("name").value.trim();
+            let parentOrganizationId = document.getElementById("parentOrganization").value;
+            parentOrganizationId = parentOrganizationId == "" ? null : parentOrganizationId;
+            let requestProps = [];
+            props.forEach((p) => {
+                let propValue = document.getElementById(p.id).value;
+                let prop = {
+                    id: p.id,
+                    name: p.name,
+                    values : propValue ? [propValue] : [],
+                    allowSubTenantEditing: true,
+                    allowSubTenantViewing: true,
+                    editable: true,
+                    viewable: true,
+                }
+                requestProps.push(prop);
+            })
+            api.createOrganizations.body = api.createOrganizations.getBody(name, parentOrganizationId, requestProps);
+            let res = await sendRequest(api.createOrganizations, token);
+
+            if (res.errors && res.errors[0]) {
+                let error = res.errors[0];
+                document.getElementById("result").innerHTML = '出错了！错误信息为： ' + error.message;
+            } else {
+                document.getElementById("result").innerHTML = '添加成功！已添加组织名称为： ' + res.name;         
+            }
+        }
+
+        window.onload = function() {
+            document.getElementById("create").addEventListener('click', addOrganization, false);
+            getToken().then((resToken)=> {
+                token = resToken;
+                getOrganizations();
+                getOrganizationProps();
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！');
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <div class="col-4 iframe-header">
+        <div class="form-group">
+            <label>组织名称：</label>
+            <input id="name" type="text" value="" required="required" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>父组织：</label>
+            <select id="parentOrganization" class="form-control"></select>
+        </div>
+        <div id="container"></div>
+        <button id="create" class="btn btn-block btn-primary">添加组织</button>
+        <p id="result"></p>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script src="../api-service/api-script.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        async function getAllProps() {
+            let propsUrl = 'admin/api/accountmanagement/api/v1/tenants/props';
+            let props = await serviceApi(propsUrl);
+            props.forEach((prop) => {
+                let select = document.getElementById("props");
+                let opt = document.createElement("option");
+                opt.value = JSON.stringify(prop);
+                opt.innerHTML = prop.name;
+                select.appendChild(opt);
+            })
+        }
+
+        async function editProp() {
+            let propsElement = document.getElementById("props");
+            let selectedOption = propsElement.options[propsElement.selectedIndex];
+            let prop = JSON.parse(selectedOption.value);
+            let url = `admin/api/accountmanagement/api/v1/tenants/props/${prop.id}`;
+            prop.name = document.getElementById("propName").value;
+            document.querySelectorAll('input[type=checkbox]:checked').forEach((item) => {
+                if (item.value === 'required') {
+                    prop.required = true;
+                } else {
+                    prop.multivalued = true;
+                }
+            })
+            let newProp = {
+                name: prop.name,
+                multivalued: prop.multivalued,
+                required: prop.required
+            }
+            let propResponse = await serviceApi(url, "PUT", newProp);
+            if (propResponse.errors && propResponse.errors[0]) {
+                let error = propResponse.errors[0];
+                document.getElementById("result").innerHTML = '编辑失败！错误信息为： ' + error.message;
+            } else {
+                selectedOption.value = JSON.stringify(prop);
+                selectedOption.innerHTML = prop.name;
+                document.getElementById("result").innerHTML = '编辑成功!';
+            }
+        }
+
+        function changeProp(jsonProp) {
+            document.getElementById("required").checked = false;
+            document.getElementById("multivalued").checked = false;
+            document.getElementById("result").innerHTML = '';
+            let prop = JSON.parse(jsonProp);
+            document.getElementById("propName").value = prop.name;
+            if (prop.required) {
+                document.getElementById("required").checked = true;
+            }
+            if (prop.multivalued) {
+                document.getElementById("multivalued").checked = true;
+            }
+        }
+
+        window.onload = function () {
+            getAllProps();
+        }
+    </script>
+</head>
+
+<body>
+<div class="col-4 iframe-header">
+    <div class="form-group">
+        <label>选择属性:</label>
+        <select id="props" onchange="changeProp(this.value)" class="form-control">
+            <option value="-1"></option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>更改属性名称：</label>
+        <input id="propName" type="text" value="" class="form-control">
+    </div>
+    <div class="form-group">
+        <input id="required" type="checkbox" value="required">必填项
+    </div>
+    <div class="form-group">
+        <input id="multivalued" type="checkbox" value="multivalued">允许多值
+    </div>
+    <div class="form-group">
+        <button onclick="editProp()" class="btn btn-block btn-primary">编辑组织属性</button>
+    </div>
+    <p id="result"></p>
+</div>
+</body>
+
+</html>

@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function deleteTag() {
+            let tag = document.getElementById("tags");
+            let tagId = tag.options[tag.selectedIndex].value;
+            api.deleteTag['graphqlStr'] = api.deleteTag.getGraphqlStr(tagId);
+            let res = await sendRequest(api.deleteTag, token);
+            document.getElementById("result").innerHTML = `result:${JSON.stringify(res.data)}`
+        }
+
+        async function initTags() {
+            let res = await sendRequest(api.getALLTags, token);
+            for (let i = 0; i < res.data.tags.length; i++) {
+                let data = res.data.tags[i];
+                if (data.type !== 'theme' && data.name.indexOf('$') === -1 && data.name.indexOf('Favorite') === -1) {
+                    let select = document.getElementById("tags");
+                    let opt = document.createElement('option');
+                    opt.value = data.id;
+                    opt.innerHTML = data.name;
+                    select.appendChild(opt);
+                }
+            }
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                initTags();
+                document.getElementById('delete-tag').addEventListener('click', deleteTag, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+  <div class="col-4 iframe-header">
+    <div class="form-group">
+      <label>tag list:</label>
+      <select id="tags" class="form-control">
+        <option style="display: none"></option>
+      </select>
+    </div>
+    <button id="delete-tag" class="btn btn-block btn-primary">delete tag</button>
+    <p id="result"> </p>
+  </div>
+</body>
+
+</html>

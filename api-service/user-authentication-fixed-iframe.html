@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getDocumentId() {
+            let res = await sendRequest(api.getSampleDashboard, token);
+            return res.data.documents[0].id;
+        }
+
+        async function login() {
+            token = await getToken();
+            let id = await getDocumentId();
+            let container = document.getElementById("container");
+            while (container.firstChild) {
+                container.firstChild.remove();
+            }
+            let src = `http://localhost:51980/dashboards/view/${id}?theme=default&lng=zh-CN&token=${token}`
+            container.innerHTML =
+                `<iframe id ="preview-iframe"
+                    src="${src}"
+                    style = 'height: 100%; width: 100%;'
+                    frameborder = "0"
+                    id = "iframe" >
+        </iframe>`;
+        }
+
+        window.onload = function () {
+            login();
+        }
+    </script>
+</head>
+
+<body>
+  <div class="auth-content" id="container" style="height: 100%">
+  </div>
+</body>
+
+</html>

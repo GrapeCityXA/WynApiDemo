@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+  <meta charset="UTF-8">
+  <title>test wynApi</title>
+  <link rel="stylesheet" href="../files/vendor.css">
+  <link rel="stylesheet" href="../files/app.css">
+  <link rel="stylesheet" href="../files/common.css">
+  <script type="module">
+    import {sendRequest, getToken} from "../api-service/api-script.js";
+    import api from '../api-service/api.js';
+
+    let token;
+    async function getUsers() {
+      let res = await sendRequest(api.getAllUsers, token);
+      var ul = document.createElement("ul");
+      res.models.forEach((user) => {
+        var li = document.createElement("li");
+        li.innerHTML = `${user.username}<br>`;
+        ul.appendChild(li);
+      })
+      var container = document.getElementById("container");
+      container.appendChild(ul);
+    }
+
+    window.onload = function() {
+      getToken().then((resToken)=> {
+          token = resToken;
+          getUsers();
+      }).catch((error) => {
+          console.log(error);
+          window.alert('获取token失败！')
+      });
+    }
+  </script>
+</head>
+
+<body>
+  <div class="from-group iframe-header">
+    <label>Users:</label>
+    <div id="container"></div>
+  </div>
+</body>
+
+</html>
