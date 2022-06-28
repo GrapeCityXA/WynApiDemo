@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getDocuments() {
+            let res = await sendRequest(api.getAllDocuments, token);
+            return res.data.documents;
+        }
+
+        async function handleChange() {
+            if (!this.value) {
+                return;
+            }
+            let type = this.value;
+            let res = await getDocuments();
+            let documents = res.filter((item) => {
+                return item.type === type;
+            })
+            let container = document.getElementById("container");
+            while (container.firstChild) {
+                container.firstChild.remove();
+            }
+            documents.forEach((doc) => {
+                let li = document.createElement("li");
+                li.innerHTML = `${doc.title}<br>`;
+                container.appendChild(li);
+            })
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                document.getElementById("types").addEventListener('change', handleChange, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+  <div class="form-group">
+    <div class="col-4 iframe-header">
+      <label>types:</label>
+      <select id="types" class="form-control">
+        <option style="display: none"></option>
+        <option value="dsc">数据源</option>
+        <option value="dataset">数据集</option>
+        <option value="rdl">报表</option>
+        <option value="dbd">仪表板</option>
+      </select>
+    </div>
+    <div id="container" class="iframe-header"></div>
+  </div>
+</body>
+
+</html>

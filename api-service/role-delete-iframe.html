@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getOrganizations() {
+            let organizations = await sendRequest(api.getOrganizations, token);
+            let select = document.getElementById("organizations");
+            organizations.forEach((organization) => {
+                let opt = document.createElement("option");
+                opt.value = organization.id;
+                opt.innerHTML = organization.name;
+                select.appendChild(opt);
+            })
+        }
+
+        async function getRoles(){
+            let organizationId = document.getElementById("organizations").selectedOptions[0].value;
+            let roles;
+            if(organizationId == ""){
+                roles = await sendRequest(api.getNonOrgRoles, token);
+            }
+            else{
+                api.getOrgRoles.url = api.getOrgRoles.getUrl(organizationId);
+                roles = await sendRequest(api.getOrgRoles, token);
+            }
+            console.log(roles)
+            let select = document.getElementById("roles");
+            if (select.children) {
+                select.innerHTML = "";
+            }
+            roles.forEach((role) => {
+                if(!role.isBuiltin){
+                    let opt = document.createElement('option');
+                    opt.value = role.id;
+                    opt.innerHTML = role.name;
+                    select.appendChild(opt);
+                }
+            })
+            if(select.options.length == 0){
+                document.getElementById("delete-role").setAttribute("disabled", "disabled"); 
+            }else{
+                document.getElementById("delete-role").removeAttribute("disabled");
+            }
+        }
+
+        async function deleteRole() {
+            let organizationId = document.getElementById("organizations").selectedOptions[0].value;
+            let roleId = document.getElementById("roles").selectedOptions[0].value;
+            let res;
+            if(organizationId == ""){
+                api.deleteRole.url = api.deleteRole.getUrl(roleId);
+                res = await sendRequest(api.deleteRole, token);
+            }else{
+                api.deleteOrganizationRole.url = api.deleteOrganizationRole.getUrl(organizationId, roleId);
+                res = await sendRequest(api.deleteOrganizationRole, token);
+            }
+            if(res.errors && res.errors[0]){
+                document.getElementById("result").innerHTML = `删除失败，错误原因为：${JSON.stringify(res.errors[0].message)}`;
+            }else{
+                document.getElementById("result").innerHTML = `删除成功，删除的角色为：${JSON.stringify(res)}`;
+            }
+        }
+
+        window.onload = function () {
+            document.getElementById("organizations").addEventListener('change', getRoles, false);
+            document.getElementById("delete-role").addEventListener('click', deleteRole, false);
+            getToken().then((resToken)=> {
+                token = resToken;
+                getOrganizations();
+                getRoles();
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+<div class="col-4 iframe-header">
+    <div class="form-group">
+        <label>选择组织:</label>
+        <select id="organizations" class="form-control">
+            <option value=""></option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>选择角色:</label>
+        <select id="roles" class="form-control">
+        </select>
+    </div>
+    <button id="delete-role" class="btn btn-block btn-primary" disabled>delete role</button>
+    <p id="result"></p>
+</div>
+</body>
+
+</html>

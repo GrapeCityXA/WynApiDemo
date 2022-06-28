@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getReports() {
+            token = await getToken();
+            let res = await sendRequest(api.getAllReportsWithParameter, token);
+            var rdls = res.data.documents.filter((item) => {
+                return Boolean(item.parameters) && item.parameters.length === 0
+            });
+
+            rdls.forEach((rdl) => {
+                let select = document.getElementById("documents-select");
+                let opt = document.createElement('option');
+                opt.value = rdl.id;
+                opt.innerHTML = rdl.title;
+                select.appendChild(opt);
+            })
+        }
+
+        async function exportDocument() {
+            let docElement = document.getElementById("documents-select");
+            let documentId = docElement.options[docElement.selectedIndex].value;
+            let typeElement = document.getElementById("types");
+            let type = typeElement.options[typeElement.selectedIndex].value;
+            api.exportReports['graphqlStr'] = api.exportReports.getGraphqlStr(documentId, type);
+            let exportRes = await sendRequest(api.exportReports, token);
+            window.open("http://localhost:51980" + exportRes.data.exportReport.resultUrl, '_blank')
+        }
+
+        window.onload = function () {
+            getReports();
+            document.getElementById("export").addEventListener('click', exportDocument, false);
+        }
+    </script>
+</head>
+
+<body>
+  <div class="col-4 iframe-header">
+    <div class="form-group">
+      <label>document:</label>
+      <select id="documents-select" class="form-control">
+        <option style="display: none"></option>
+      </select>
+      <div class="form-group">
+        <label>export types:</label>
+        <select id="types" class="form-control">
+          <option value="Pdf">Pdf</option>
+          <option value="Excel">Excel</option>
+          <option value="Html">Html</option>
+          <option value="Csv">Csv</option>
+          <option value="Json">Json</option>
+        </select>
+      </div>
+    </div>
+    <button id="export" class="btn btn-block btn-primary">export</button>
+  </div>
+</body>
+
+</html>

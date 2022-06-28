@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function initDocuments() {
+            let res = await sendRequest(api.getAllDocuments, token);
+            let select = document.getElementById("documents");
+            let select2 = document.getElementById("documents2");
+            for (let i = 0; i < res.data.documents.length; i++) {
+                let data = res.data.documents[i];
+                if (data.type !== 'theme') {
+                    let opt = document.createElement('option');
+                    opt.value = data.id;
+                    opt.innerHTML = data.title;
+                    select.appendChild(opt);
+
+                    let opt2 = document.createElement('option');
+                    opt2.value = data.id;
+                    opt2.innerHTML = data.title;
+                    select2.appendChild(opt2);
+                }
+            }
+        }
+
+        async function initTags() {
+            let res = await sendRequest(api.getALLTags, token);
+            for (let i = 0; i < res.data.tags.length; i++) {
+                let data = res.data.tags[i];
+                if (data.name.indexOf('$')) {
+                    let select = document.getElementById("tags");
+                    let opt = document.createElement('option');
+                    opt.value = data.id;
+                    opt.innerHTML = data.name;
+                    select.appendChild(opt);
+                }
+            }
+        }
+
+        async function handleQueryTags() {
+            if(!this.value) {
+                return ;
+            }
+            let documentId = this.value;
+            api.getDocInfoByDocumentId['graphqlStr'] = api.getDocInfoByDocumentId.getGraphqlStr(documentId);
+            let res = await sendRequest(api.getDocInfoByDocumentId, token);
+            let select = document.getElementById("existing-tags");
+            while (select.firstChild) {
+                select.firstChild.remove();
+            }
+            for (let i = 0; i < res.data.document.tags.length; i++) {
+                let data = res.data.document.tags[i];
+                let opt = document.createElement('option');
+                opt.value = data.id;
+                opt.innerHTML = data.name;
+                select.appendChild(opt);
+            }
+        }
+
+        async function addTag() {
+            let doc = document.getElementById("documents");
+            let documentId = doc.options[doc.selectedIndex].value;
+            let tag = document.getElementById("tags");
+            let tagId = tag.options[tag.selectedIndex].value;
+            api.addTagForDocument['graphqlStr'] = api.addTagForDocument.getGraphqlStr(tagId, documentId);
+            await sendRequest(api.addTagForDocument, token);
+
+            api.getDocInfoByDocumentId['graphqlStr'] = api.getDocInfoByDocumentId.getGraphqlStr(documentId);
+            let res = await sendRequest(api.getDocInfoByDocumentId, token);
+            document.getElementById("result").innerHTML = 'existing categories:&nbsp;&nbsp;' + JSON.stringify(res.data.document.tags);
+        }
+
+        async function deleteTag() {
+            let doc = document.getElementById("documents2");
+            let documentId = doc.options[doc.selectedIndex].value;
+
+            let tag = document.getElementById("existing-tags");
+            let tagId = tag.options[tag.selectedIndex].value;
+            api.deleteTagFromDocument['graphqlStr'] = api.deleteTagFromDocument.getGraphqlStr(tagId, documentId);
+            let res = await sendRequest(api.deleteTagFromDocument, token);
+            document.getElementById("result2").innerHTML = 'result:&nbsp;&nbsp;' + JSON.stringify(res.data.untagDocument);
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                initDocuments();
+                initTags();
+                document.getElementById("add-tag").addEventListener('click', addTag, false);
+                document.getElementById("delete-tag").addEventListener('click', deleteTag, false);
+                document.getElementById("documents2").addEventListener('change', handleQueryTags, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+<div style="display:flex">
+    <div class="col-4">
+        <div class="form-group">
+            <label>document list:</label>
+            <select id="documents" class="form-control">
+                <option style="display: none"></option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>tag list:</label>
+            <select id="tags" class="form-control">
+                <option style="display: none"></option>
+            </select>
+        </div>
+        <button type="button" id="add-tag" class="btn btn-block btn-primary">add tag</button>
+        <p id="result"></p>
+    </div>
+
+    <div class="col-4">
+        <div class="form-group">
+            <label>document list:</label>
+            <select id="documents2" class="form-control">
+                <option style="display: none"></option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>existing tag list:</label>
+            <select id="existing-tags" class="form-control">
+                <option style="display: none"></option>
+            </select>
+        </div>
+        <button type="button" id="delete-tag" class="btn btn-block btn-primary">delete tag</button>
+        <p id="result2"></p>
+    </div>
+</div>
+
+</body>
+
+</html>

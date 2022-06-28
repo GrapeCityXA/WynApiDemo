@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function addTag() {
+            let doc = document.getElementById("documents");
+            let documentId = doc.options[doc.selectedIndex].value;
+            let tag = document.getElementById("tags");
+            let tagId = tag.options[tag.selectedIndex].value;
+            api.addTagForDocument['graphqlStr'] = api.addTagForDocument.getGraphqlStr(tagId, documentId);
+            await sendRequest(api.addTagForDocument, token);
+            api.getDocInfoByDocumentId['graphqlStr'] = api.getDocInfoByDocumentId.getGraphqlStr(documentId);
+            let res = await sendRequest(api.getDocInfoByDocumentId, token);
+            document.getElementById("result").innerHTML = 'existing categories:&nbsp;&nbsp;' + JSON.stringify(res.data.document.tags);
+        }
+
+        async function initDocuments() {
+            let res = await sendRequest(api.getAllDocuments, token);
+            for (let i = 0; i < res.data.documents.length; i++) {
+                let data = res.data.documents[i];
+                if (data.type !== 'theme') {
+                    let select = document.getElementById("documents");
+                    let opt = document.createElement('option');
+                    opt.value = data.id;
+                    opt.innerHTML = data.title;
+                    select.appendChild(opt);
+                }
+            }
+        }
+
+        async function initTags() {
+            let res = await sendRequest(api.getALLTags, token);
+            for (let i = 0; i < res.data.tags.length; i++) {
+                let data = res.data.tags[i];
+                let select = document.getElementById("tags");
+                let opt = document.createElement('option');
+                opt.value = data.id;
+                opt.innerHTML = data.name;
+                select.appendChild(opt);
+            }
+        }
+
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                initDocuments();
+                initTags();
+                document.getElementById('add-tag').addEventListener('click', addTag, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+<div class="col-4">
+    <div class="form-group">
+        <label>document list:</label>
+        <select id="documents" class="form-control">
+            <option style="display: none"></option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>tag list:</label>
+
+        <select id="tags" class="form-control">
+            <option style="display: none"></option>
+        </select>
+    </div>
+    <button id="add-tag" class="btn btn-block btn-primary">add tag</button>
+    <p id="result"></p>
+</div>
+</body>
+
+</html>

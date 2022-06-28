@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function exportPortalDirectory() {
+            let payload = {
+                include: [
+                    {
+                        type: "sys-role",
+                        items: []
+                    }
+                ]
+            }
+            api.batchExport['body'] = api.batchExport.getBody(payload);
+            let sessionId = await sendRequest(api.batchExport, token);
+            window.open(`http://localhost:51980/admin/api/export/${sessionId}`, '_blank')
+        }
+
+        async function exportTenants() {
+            let payload = {
+                include: [
+                    {
+                        type: "sys-cat",
+                        items: []
+                    }
+                ]
+            }
+            api.batchExport['body'] = api.batchExport.getBody(payload);
+            let sessionId = await sendRequest(api.batchExport, token);
+            window.open(`http://localhost:51980/admin/api/export/${sessionId}`, '_blank')
+        }
+
+        async function exportPortalDirectoryTenants() {
+            let payload = {
+                include: [
+                    {
+                        type: "sys-cat",
+                        items: []
+                    },
+                    {
+                        type: "sys-role",
+                        items: []
+                    }
+                ]
+            }
+            api.batchExport['body'] = api.batchExport.getBody(payload);
+            let sessionId = await sendRequest(api.batchExport, token);
+            window.open(`http://localhost:51980/admin/api/export/${sessionId}`, '_blank')
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                document.getElementById("export-portal-directory").addEventListener('click', exportPortalDirectory, false);
+                document.getElementById("export-tenants").addEventListener('click', exportTenants, false);
+                document.getElementById("export-portal-directory-tenant").addEventListener('click', exportPortalDirectoryTenants, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+<div class="col-4 iframe-header">
+    <button id="export-portal-directory" class="btn btn-block btn-primary">导出门户目录</button>
+    <button id="export-tenants" class="btn btn-block btn-primary">导出角色</button>
+    <button id="export-portal-directory-tenant" class="btn btn-block btn-primary">同时导出门户目录和角色</button>
+</div>
+</body>
+
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getRolesAndPermissions() {
+            let data = await sendRequest(api.getRolesAndPermissions, token);
+            createMenu(data);
+        }
+
+        function createMenu(nodes) {
+            let container = document.getElementById("container")
+            let list = document.createElement('ul');
+
+            nodes.forEach(function (node) {
+                let listItem = document.createElement('li');
+                listItem.textContent = node.name;
+                list.appendChild(listItem);
+                if (!node.permissions.length) return;
+                let childList = document.createElement('ul');
+                node.permissions.forEach(function (permission) {
+                    let childListItem = document.createElement('li');
+                    childListItem.textContent = permission;
+                    childList.appendChild(childListItem);
+                    list.appendChild(childList);
+                })
+            });
+
+            container.appendChild(list);
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                getRolesAndPermissions();
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+<p id="container"></p>
+</body>
+
+</html>

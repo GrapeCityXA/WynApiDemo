@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getDocuments() {
+            let res = await sendRequest(api.getAllDocuments, token);
+            for (let i = 0; i < res.data.documents.length; i++) {
+                let data = res.data.documents[i];
+                if (data.type !== 'theme') {
+                    let select = document.getElementById("documents");
+                    let opt = document.createElement('option');
+                    opt.value = data.id;
+                    opt.innerHTML = data.title;
+                    select.appendChild(opt);
+                }
+            }
+        }
+
+        async function handleQuery() {
+            if (!this.value) {
+                return;
+            }
+            let documentId = this.value;
+            api.getDocInfoByDocumentId['graphqlStr'] = api.getDocInfoByDocumentId.getGraphqlStr(documentId);
+            let res = await sendRequest(api.getDocInfoByDocumentId, token);
+            document.getElementById("result").innerHTML = 'existing tags:&nbsp;&nbsp;' + JSON.stringify(res.data.document.tags);
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                getDocuments();
+                document.getElementById("documents").addEventListener('change', handleQuery, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+<div class="form-group col-4">
+    <label> documents list:</label>
+    <select id="documents" class="form-control">
+        <option style="display: none"></option>
+    </select>
+    <div id="result"></div>
+</div>
+</body>
+
+</html>

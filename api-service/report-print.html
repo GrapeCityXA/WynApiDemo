@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+
+  <link rel="stylesheet" href="../files/vendor.css">
+  <link rel="stylesheet" href="../files/app.css">
+  <link rel="stylesheet" href="../files/common.css">
+
+</head>
+
+<body class="loaded">
+<div class="main-wrapper">
+
+  <div class="app" id="app">
+
+      <article class="content dashboard-page">
+        <section class="section">
+          <div class="row sameheight-container">
+            <div class="col-12">
+              如果想要在业务系统中设置一个菜单，用户点击菜单时不经查看页面、直接预览打印报表内容，可调用Wyn Enterprise的预览打印API。<br/><br/>
+                <pre>本示例只演示了无参数报表的预览打印，有参数报表预览打印请修改Source内查询语句，添加报表参数parameters:[key:参数名,value:参数内容]<br/><br/>报表预览打印的核心内容以及步骤请参考：https://gcdn.grapecity.com.cn/showtopic-69765-1-1.html
+                </pre>
+            </div>
+          </div>
+
+        </section>
+        <section class="section">
+          <div class="row sameheight-container">
+            <div class="col-12">
+              <div class="card sameheight-item" data-exclude="xs" id="dashboard-history">
+                <div class="card-header card-header-sm bordered">
+                  <div class="header-block">
+                    <h3 class="title"></h3>
+                  </div>
+                  <ul class="nav nav-tabs pull-right" role="tablist">
+                    <li class="nav-item ">
+                      <a class="nav-link active" role="tab" data-toggle="tab">Preview</a>
+                    </li>
+
+                  </ul>
+                </div>
+                <div id="preview" class="card demo" style="display:block;height: 100%; ">
+                  <iframe src="report-print-iframe.html" width="100%" height="100%" frameborder="0"></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </article>
+    </div>
+  </div>
+</body>
+<script src="../common.js" charset="utf-8"></script>
+
+</html>

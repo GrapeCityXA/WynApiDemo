@@ -1,0 +1,73 @@
+﻿<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <link rel="stylesheet" href="../files/vendor.css">
+  <link rel="stylesheet" href="../files/app.css">
+  <link rel="stylesheet" href="../files/common.css">
+  <script src="../api-service/api-script.js" charset="utf-8"></script>
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getReports() {
+            token = await getToken();
+            let res = await sendRequest(api.getAllReportsWithParameter, token);
+            var rdls = res.data.documents.filter((item) => {
+                return Boolean(item.parameters) && item.parameters.length === 0
+            });
+
+            rdls.forEach((rdl) => {
+                let select = document.getElementById("documents-select");
+                let opt = document.createElement('option');
+                opt.value = rdl.id;
+                opt.innerHTML = rdl.title;
+                select.appendChild(opt);
+            })
+        }
+        async function printDocument() {
+            let docElement = document.getElementById("documents-select");
+            let documentId = docElement.options[docElement.selectedIndex].value;
+
+            api.acquireJobId['graphqlStr'] = api.acquireJobId.getGraphqlStr(documentId);
+            let jobRes = await sendRequest(api.acquireJobId, token);
+
+            if(jobRes.data && jobRes.data && jobRes.data.render.jobId){
+                api.acquireDocumentIdByJobId['graphqlStr'] = api.acquireDocumentIdByJobId.getGraphqlStr(jobRes.data.render.jobId);
+                let docRes = await sendRequest(api.acquireDocumentIdByJobId, token);
+
+                if(docRes.data && docRes.data.job && docRes.data.job.documentId){
+                    api.printReport['graphqlStr'] = api.printReport.getGraphqlStr(docRes.data.job.documentId);
+                    let exportRes = await sendRequest(api.printReport, token);
+                    window.open("http://localhost:51980" + exportRes.data.exportDocument.resultUrl, '_blank');
+                } else {
+                    window.alert('预览报表内容失败，无法获取报表id');
+                }
+            } else {
+                window.alert('获取job id失败');
+            }
+        }
+
+        window.onload = function () {
+            getReports();
+            document.getElementById("print").addEventListener('click', printDocument, false);
+        }
+  </script>
+</head>
+
+<body>
+  <div class="col-4 iframe-header">
+    <div class="form-group">
+      <label>document:</label>
+      <select id="documents-select" class="form-control">
+        <option style="display: none"></option>
+      </select>
+    </div>
+    <button id="print" class="btn btn-block btn-primary">print</button>
+  </div>
+</body>
+
+</html>

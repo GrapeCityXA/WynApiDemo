@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+
+  <link rel="stylesheet" href="../files/vendor.css">
+  <link rel="stylesheet" href="../files/app.css">
+  <link rel="stylesheet" href="../files/common.css">
+
+</head>
+
+<body class="loaded">
+<div class="main-wrapper">
+
+    <div class="app" id="app">
+
+      <article class="content dashboard-page">
+        <section class="section">
+          <div class="row sameheight-container">
+              <div class="col-12">
+                  报表设计中经常需要设置报表参数，目的是允许报表用户对报表数据进行过滤，报表参数往往就是报表数据的查询条件。如果想在业务系统中设置查询条件，调用报表时将查询条件以报表参数的形式传给报表，可以参考下面的文档说明：<br /><br />
+                  <a href="http://help.grapecity.com.cn/pages/viewpage.action?pageId=30265333" target="_blank">URL传参</a><br /><br />
+                  <pre>
+
+下面的URL是一个报表参数传递的示例。
+
+被调用的报表中，设计有多个参数，参数名分别是：大区、省份、columns，其中，columns参数用于控制显示或隐藏几个动态显示的表格列。
+如果用户在业务系统中选择了【西北】这个大区，【甘肃省、陕西省、青海省】这几个省份，还有1、2、4这几个动态列，那么需要传递的参数值应为如下字符串：
+
+{"大区": ["西北"], "省份": ["甘肃省", "陕西省", "青海省"], "columns": [1, 2, 4]}
+
+经过URL编码处理，上面这个字符串将变成：
+
+%7b%22%e5%a4%a7%e5%8c%ba%22%3a+%5b%22%e8%a5%bf%e5%8c%97%22%5d%2c+%22%e7%9c%81%e4%bb%bd%22%3a+%5b%22%e7%94%98%e8%82%83%e7%9c%81%22%2c
++%22%e9%99%95%e8%a5%bf%e7%9c%81%22%2c+%22%e9%9d%92%e6%b5%b7%e7%9c%81%22%5d%2c+%22columns%22%3a+%5b1%2c+2%2c+4%5d%7d
+
+原始的报表查看网址如下：
+
+https://wyn.grapecity.com.cn/reports/view/5c7f40220f588b001361003e?display=pageless&theme=default&lng=zh-CN
+
+
+在这个原始网址末尾追加 &dp= 以及上面的参数值内容之后，得到的URL字串如下：
+
+https://wyn.grapecity.com.cn/reports/view/5c7f40220f588b001361003e?display=pageless&theme=default&lng=zh-CN<strong style="color:red;">&dp=</strong>%7b%22%e5%a4%a7%e5%8c%ba%22%3a+%5b%22%e8%a5%bf%e5%8c%97%22%5d%2c
++%22%e7%9c%81%e4%bb%bd%22%3a+%5b%22%e7%94%98%e8%82%83%e7%9c%81%22%2c+%22%e9%99%95%e8%a5%bf%e7%9c%81%22%2c+%22%e9%9d%92%e6%b5%b7%e7%9c%81%22%5d%2c+%22columns%22%3a+%5b1%2c+2%2c+4%5d%7d
+
+最后，再加上&token= 参数，即为最终直接查看的URL:
+
+https://wyn.grapecity.com.cn/reports/view/5c7f40220f588b001361003e?display=pageless&theme=default&lng=zh-CN<strong style="color:red;">&dp=</strong>%7b%22%e5%a4%a7%e5%8c%ba%22%3a+%5b%22%e8%a5%bf%e5%8c%97%22%5d%2c
+    +%22%e7%9c%81%e4%bb%bd%22%3a+%5b%22%e7%94%98%e8%82%83%e7%9c%81%22%2c+%22%e9%99%95%e8%a5%bf%e7%9c%81%22%2c+%22%e9%9d%92%e6%b5%b7%e7%9c%81%22%5d%2c+%22columns%22%3a+%5b1%2c+2%2c+4%5d%7d
+    <strong style="color:red;">&token=</strong>6e2c09f797aa103eda187d39348a7236bb2f4d6567738c7082c4f220e903dc75
+
+</pre>
+                  <a target="_blank" href="https://wyn.grapecity.com.cn/reports/view/5c7f40220f588b001361003e?display=pageless&theme=default&lng=zh-CN&dp=%7b%22%e5%a4%a7%e5%8c%ba%22%3a+%5b%22%e8%a5%bf%e5%8c%97%22%5d%2c+%22%e7%9c%81%e4%bb%bd%22%3a+%5b%22%e7%94%98%e8%82%83%e7%9c%81%22%2c+%22%e9%99%95%e8%a5%bf%e7%9c%81%22%2c+%22%e9%9d%92%e6%b5%b7%e7%9c%81%22%5d%2c+%22columns%22%3a+%5b1%2c+2%2c+4%5d%7d&token=6e2c09f797aa103eda187d39348a7236bb2f4d6567738c7082c4f220e903dc75">
+                      此链接就是跳转到上面这个URL，点击即可查看报表，无需输入查询条件。
+                  </a>
+              </div>
+          </div>
+        </section>
+      </article>
+    </div>
+  </div>
+</body>
+<script src="../common.js" charset="utf-8"></script>
+
+</html>
